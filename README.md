@@ -1,191 +1,196 @@
-# 🏈 Seahawks Monitoring — NSPR / MSPR Project
+# 🦅 Seahawks Monitoring
 
-Projet MSPR TPRE552 – Bachelor Cyb3rXP 2025 / 2026  
-Réalisation : **Anas EL MALIKI**, **Mariama BENKHALID**, **Xavier MEYER**
+**Projet MSPR TPRE552 — Développement & Sécurité Informatique**
+Bachelor CYB3R XP
 
----
+👥 **Équipe projet**
 
-## 📘 Introduction
-
-Dans le cadre de la MSPR Développement et Sécurité Informatique du Bachelor Cyb3r XP, notre groupe a été chargé de concevoir **une solution de supervision réseau** pour la société **NFL IT**, dans le cadre du programme _Seahawks Monitoring_.
-
-L’objectif principal était de fournir une **solution simple, sécurisée et capable d’unifier la supervision réseau** entre plusieurs sites à distance, avec un système capable de :
-
-- Collecter automatiquement les données réseau
-- Centraliser les résultats
-- Générer des rapports lisibles
-- Offrir une interface de consultation fiable et sécurisée
+* Anas EL MALIKI
+* Mariama BENKHALID
+* Xavier MEYER
 
 ---
 
-## 📌 Contexte du projet
+## 📌 Présentation du projet
 
-NFL IT est une entreprise spécialisée dans l’infogérance, la gestion d’infrastructures multi-sites, et l’accompagnement technique des équipes de football américain de la **National Football League (NFL)**.
+**Seahawks Monitoring** est une solution de supervision réseau conçue pour standardiser la collecte et l’analyse d’informations techniques dans des environnements **multi-sites**.
 
-Cependant, l’entreprise rencontre plusieurs difficultés :
+L’objectif est de permettre aux équipes support **N1 / N2** de disposer rapidement d’une vision fiable de l’état technique d’un site distant afin de :
 
-- Une supervision réseau fragmentée
-- Une absence d’outil centralisé
-- Des diagnostics lents et coûteux
-- Un manque de visibilité sur les performances
+* Réduire les interventions sur site
+* Accélérer les diagnostics
+* Améliorer la continuité de service
+* Centraliser les données de supervision
 
-Notre projet vise à répondre à ce besoin en construisant un système simple, efficace et sécurisé.
-
----
-
-## ❓ Problématique
-
-L’entreprise ne dispose pas d’un outil capable de :
-
-- Superviser le réseau en temps réel à distance
-- Automatiser la collecte de données techniques
-- Fournir un tableau de bord centralisé
-- Garantir l’intégrité et la sécurité des rapports
-
-👉 **Problème central :**  
-**Comment créer une solution unifiée, automatisée et sécurisée capable de superviser plusieurs réseaux distants depuis un point central ?**
+La solution repose sur une **architecture distribuée agent / serveur centralisé.**
 
 ---
 
-## 🎯 Objectifs du projet
+## 🧩 Architecture de la solution
 
-### **Objectif principal :**
+### 🔹 Seahawks Harvester (Composant local)
 
-Créer un système composé de **Harvester** (collecteurs) et d’un **Nester** (serveur central) permettant la collecte, l’analyse et la visualisation des données réseau.
+Déployé sur une **machine virtuelle Linux**, ce composant permet :
 
-### **Objectifs secondaires :**
+* Le scan réseau (découverte IP et ports)
+* Le calcul du nombre d’équipements détectés
+* La mesure de la latence WAN
+* La génération d’un rapport structuré local
+* L’affichage d’un tableau de bord minimal
 
-- Automatiser les scans réseau (hosts, ports, configurations)
-- Générer des rapports structurés en temps réel
-- Héberger les résultats sur un serveur web central (Nginx)
-- Sécuriser l’accès au serveur (authentification + hash bcrypt)
-- Faciliter la prise en main pour les techniciens N1/N2
-- Documenter et standardiser la démarche
-
----
-
-## 👥 Présentation des membres
-
-| Nom                   | Rôle                          | Responsabilités principales                       |
-| --------------------- | ----------------------------- | ------------------------------------------------- |
-| **Anas EL MALIKI**    | Développeur / Intégrateur     | Scripts Python, intégration, gestion du dépôt Git |
-| **Mariama BENKHALID** | Administratrice Système       | VM, réseau interne, configuration système         |
-| **Xavier MEYER**      | Responsable Sécurité / DevOps | Nginx, sécurité, HTTPS, durcissement              |
+✅ Fonctionne **même en mode déconnecté** du centre.
 
 ---
 
-## 🧱 Architecture du système
+### 🔹 Seahawks Nester (Plateforme centrale)
 
-### 🗂️ Schéma global du projet
+Déployée en **datacenter**, cette application web permet :
 
+* La supervision des sondes déployées
+* La consultation du dernier rapport reçu
+* Le suivi de l’état de connexion des sites
 
-<img width="1143" height="557" alt="Architecture du système" src="https://github.com/user-attachments/assets/a09802c7-40fa-4415-ba67-c2d5b56aff89" />
-
-Le système repose sur :
-
-- **Harvester** (client) :  
-  Collecte les informations réseau → génère un rapport → l’envoie au serveur
-
-- **Nester** (serveur central) :  
-  Reçoit les rapports → les organise → les affiche via un serveur web Nginx
-
-### Composants :
-
-- 2 VM VirtualBox (Debian)
-- Nginx (serveur web)
-- Python 3 + Nmap (scan)
-- DuckDNS (nom de domaine dynamique)
-- Système d’authentification sécurisé (bcrypt + JSON)
-- Automatisation des tâches (cron)
+La plateforme repose sur une **architecture web légère**, facilitant le déploiement et l’évolutivité.
 
 ---
 
-## 🗂️ Gestion de projet — Planning
+## 📊 Modèle de données
 
-### 📅 Diagramme de Gantt / Chronologie
+Les rapports générés sont structurés au format **JSON**.
 
+### Exemple :
 
-<img width="1054" height="637" alt="Planning du projet" src="https://github.com/user-attachments/assets/57962844-940c-43f3-a964-aecedd93bba8" />
+```json
+{
+  "host_id": "vm-franchise-01",
+  "scan_date": "2026-03-12 21:30",
+  "devices_detected": 12,
+  "average_latency_ms": 24,
+  "open_ports_summary": ["22", "80", "443"],
+  "version": "1.0.0"
+}
+```
 
+Ce format permet :
 
-### 📌 Phases principales
-
-1. **Analyse du besoin**
-2. **Modélisation & architecture**
-3. **Installation des machines virtuelles**
-4. **Configuration réseau & sécurité**
-5. **Développement des scripts**
-6. **Mise en place du serveur Nginx**
-7. **Tests & validations**
-8. **Rédaction du rapport**
-
----
-
-## 🛠️ Technologies utilisées
-
-| Technologie      | Rôle                   | Justification                   |
-| ---------------- | ---------------------- | ------------------------------- |
-| **Python 3**     | Scan & automatisation  | Flexible, puissant, maintenable |
-| **python-nmap**  | Scan réseau            | Intégration simple avec Python  |
-| **Nmap**         | Collecte réseau        | Standard industriel             |
-| **Nginx**        | Serveur web            | Léger, rapide, sécurisé         |
-| **DuckDNS**      | DNS dynamique          | Accès distant gratuit           |
-| **bcrypt**       | Hash des mots de passe | Sécurisation                    |
-| **VirtualBox**   | Environnement virtuel  | Simule un réseau complet        |
-| **Git / GitHub** | Travail collaboratif   | Versioning & transparence       |
+* Une exploitation simple des données
+* Une traçabilité des rapports
+* Une intégration future dans des outils avancés de supervision
 
 ---
 
-## 🔐 Sécurité
+## 🔐 Sécurité de la solution
 
-### Mesures mises en place :
+Plusieurs principes de cybersécurité sont intégrés dès la conception :
 
-- Hashage des mots de passe avec **bcrypt**
-- Aucun mot de passe en clair
-- Fichiers JSON protégés
-- Accès contrôlé via Nginx
-- Sécurisation du serveur (permissions, firewall, durcissement)
-- Structure stable & modulaire des scripts
+* Exécution avec **privilèges minimaux**
+* Absence de stockage de mots de passe en clair
+* Horodatage et versionnement des rapports
+* Journalisation structurée des événements
+* Limitation du périmètre de scan aux environnements autorisés
 
----
-
-## 🧪 Tests (résumé)
-
-Les tests ont permis de valider :
-
-- La communication entre les machines
-- L'exécution automatique des scans
-- La génération correcte des rapports
-- La transmission fiable au serveur
-- Le fonctionnement du serveur web Nginx
-- La solidité du système d’authentification
-
-⚠️ _Les captures techniques (ping, résultats scans, terminal…) sont uniquement disponibles dans le rapport complet._
+Ces choix garantissent **l’intégrité des données et la maintenabilité de la solution.**
 
 ---
 
-## 📄 Rapport complet
+## 📜 Journalisation & Observabilité
 
-Le rapport complet (avec toutes les captures techniques, résultats détaillés, configurations et preuves) est disponible ici :
+Un système de logs structurés permet de :
 
----
+* Suivre les scans réalisés
+* Identifier les erreurs réseau
+* Faciliter les diagnostics des équipes support
+* Permettre une intégration future dans une stack **ELK**
 
-## 📚 Conclusion
+Chaque événement critique contient :
 
-Ce projet nous a permis de :
-
-- Déployer une architecture réseau réaliste
-- Mettre en place une solution complète de supervision
-- Renforcer nos compétences en Python, sécurité, et administration système
-- Collaborer efficacement en équipe
-- Produire une documentation professionnelle
-
-La solution Seahawk Monitoring fournit désormais une **base robuste, sécurisée et évolutive** pour la supervision réseau multi-sites.
+* Un timestamp
+* Un niveau de criticité
+* Le composant concerné
 
 ---
 
-## 👨‍💻 Auteurs
+## 🔌 Continuité de service en mode déconnecté
 
-- **Anas EL MALIKI**
-- **Mariama BENKHALID**
-- **Xavier MEYER**
+Le Harvester conserve localement le **dernier rapport généré**.
+
+Cela permet :
+
+* Une consultation immédiate sur site
+* Une synchronisation automatique lorsque la connexion est rétablie
+* Une continuité opérationnelle pour les équipes support
+
+---
+
+## 🚀 Déploiement & Évolutivité
+
+La solution est conçue pour être :
+
+* Facilement clonable entre hyperviseurs
+* Modulaire et évolutive
+
+### Perspectives d’évolution :
+
+* Télémaintenance sécurisée
+* Haute disponibilité
+* Intégration SIEM
+* Automatisation du déploiement
+
+---
+
+## 👨‍💻 Organisation du projet
+
+### Répartition des responsabilités
+
+**Anas — Architecture & collecte réseau**
+
+* Conception de l’architecture globale
+* Définition du modèle de communication Harvester → Nester
+* Conception du format des rapports JSON
+* Étude des mécanismes de journalisation
+* Prototype du moteur de scan réseau
+
+**Mariama — Sécurité & documentation**
+
+* Analyse des exigences de cybersécurité
+* Mise en place des principes de moindre privilège
+* Rédaction du runbook d’exploitation N1 / N2
+* Documentation des procédures de déploiement
+* Définition des stratégies de gestion des secrets
+
+**Xavier — Plateforme centrale & supervision**
+
+* Conception de la plateforme centralisée
+* Définition de l’interface utilisateur
+* Organisation du stockage des rapports
+* Tests de consultation et restitution des données
+* Préparation du support de soutenance
+
+---
+
+## 🔄 Workflow Git
+
+Un repository **GitHub** a été utilisé afin d’assurer :
+
+* La traçabilité des modifications
+* La collaboration efficace entre les membres
+* Le versioning du projet
+* Le suivi structuré de l’avancement
+
+---
+
+## ✅ Conclusion
+
+Le projet **Seahawks Monitoring** constitue une base opérationnelle permettant d’améliorer la supervision des infrastructures multi-sites.
+
+La solution répond aux besoins métier tout en respectant les contraintes de sécurité et d’exploitabilité.
+
+Les prochaines étapes consistent à :
+
+* Finaliser le déploiement technique
+* Réaliser des tests en environnement virtualisé
+* Étendre progressivement les fonctionnalités
+
+---
+
+⭐ *Projet académique — Programme CYB3R XP*
