@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
+from functools import wraps
 import os
 import json
 from datetime import datetime
@@ -6,10 +7,38 @@ from datetime import datetime
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "reports"
+API_KEY = "seahawks-secret-2026"
+
+WEB_USERNAME = "admin"
+WEB_PASSWORD = "seahawks2026"
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
+def check_auth(username, password):
+    return username == WEB_USERNAME and password == WEB_PASSWORD
+
+
+def authenticate():
+    return Response(
+        "Authentication required",
+        401,
+        {"WWW-Authenticate": 'Basic realm="Login Required"'}
+    )
+
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+
 @app.route("/")
+@requires_auth
 def home():
     files = sorted(os.listdir(UPLOAD_FOLDER), reverse=True)
 
@@ -42,13 +71,11 @@ def home():
 
             host = data.get("host_id", "unknown")
 
-            # Keep only the newest report for each probe
             if host not in probes:
                 probes[host] = {
                     "filename": filename,
                     "data": data
                 }
-
         except Exception:
             continue
 
@@ -68,15 +95,23 @@ def home():
         except Exception:
             status = "UNKNOWN"
 
+        alert = data.get("alert_level", "OK")
+        alert_color = {
+            "OK": "#d4edda",
+            "WARNING": "#fff3cd",
+            "CRITICAL": "#f8d7da"
+        }.get(alert, "#eeeeee")
+
         rows.append(f"""
         <tr>
-            <td>{filename}</td>
+            <td><a href="/report/{filename}">{filename}</a></td>
             <td>{host}</td>
             <td>{data.get('scan_date', 'N/A')}</td>
             <td>{data.get('devices_detected', 'N/A')}</td>
             <td>{data.get('average_latency_ms', 'N/A')}</td>
             <td>{data.get('version', 'N/A')}</td>
             <td>{status}</td>
+            <td style="background-color:{alert_color}; font-weight:bold;">{alert}</td>
         </tr>
         """)
 
@@ -104,6 +139,10 @@ def home():
             th {{
                 background-color: #f2f2f2;
             }}
+            a {{
+                text-decoration: none;
+                color: #0077cc;
+            }}
         </style>
     </head>
     <body>
@@ -117,6 +156,7 @@ def home():
                 <th>Latency (ms)</th>
                 <th>Version</th>
                 <th>Status</th>
+                <th>Alert</th>
             </tr>
             {''.join(rows)}
         </table>
@@ -127,6 +167,11 @@ def home():
 
 @app.route("/upload", methods=["POST"])
 def upload():
+    auth_header = request.headers.get("X-API-KEY")
+
+    if auth_header != API_KEY:
+        return jsonify({"status": "unauthorized"}), 401
+
     data = request.get_json()
 
     filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -136,6 +181,47 @@ def upload():
         json.dump(data, f, indent=4)
 
     return jsonify({"status": "received", "file": filename}), 200
+
+
+@app.route("/report/<filename>")
+@requires_auth
+def report_detail(filename):
+    path = os.path.join(UPLOAD_FOLDER, filename)
+
+    if not os.path.exists(path):
+        return "Report not found", 404
+
+    with open(path) as f:
+        data = json.load(f)
+
+    return f"""
+    <html>
+    <head>
+        <title>Report {filename}</title>
+        <style>
+            body {{
+                font-family: monospace;
+                margin: 40px;
+                background: #f5f5f5;
+            }}
+            pre {{
+                background: white;
+                padding: 20px;
+                border: 1px solid #ccc;
+            }}
+            a {{
+                text-decoration: none;
+                color: #0077cc;
+            }}
+        </style>
+    </head>
+    <body>
+        <h2>Report: {filename}</h2>
+        <pre>{json.dumps(data, indent=4)}</pre>
+        <a href="/">← Back</a>
+    </body>
+    </html>
+    """
 
 
 if __name__ == "__main__":
